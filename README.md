@@ -74,11 +74,9 @@ No rule configuration is required for the interceptor.
 Earlier versions configured Basic Auth through a Rules Engine **actionlet** (Rule Engine portlet →
 add a rule → "Basic Auth" action → `username:password`). This path is still **supported for backward
 compatibility** — existing rules keep working — but it is not recommended for new setups because a
-rule only fires during page rendering and therefore cannot gate asset sub-resources: browsers replay
-the `Authorization` header on every CSS/JS/image request and those hit the asset servlets directly,
-which on current dotCMS reject the unknown credential with an empty `401` (dotCMS/core#29869 /
-\#35536). The actionlet does **not** strip the header, so this asset `401` persists unless the
-core-side fix is deployed. Use the interceptor for full page + sub-resource coverage.
+rule only fires during page rendering and therefore cannot gate asset sub-resources (CSS/JS/images):
+the browser-replayed `Authorization` header on those requests reaches the asset servlets directly,
+where the actionlet has no say. Use the interceptor for full page + sub-resource coverage.
 
 ### Choosing between the two (`BASICAUTH_ENFORCEMENT`)
 

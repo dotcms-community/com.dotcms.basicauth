@@ -28,10 +28,6 @@ import io.vavr.control.Try;
  * (configured via {@code BASICAUTH_HOSTS} / {@code BASICAUTH_CREDENTIALS}). The
  * {@code BASICAUTH_ENFORCEMENT} property selects which mechanism enforces; in the default
  * {@code AUTO} mode this actionlet enforces only on hosts the interceptor is not gating.</p>
- *
- * <p>Unlike the interceptor, this actionlet does not strip the {@code Authorization} header, so on
- * dotCMS versions with the strict BASIC handling (dotCMS/core#29869) browser-replayed credentials on
- * sub-resources may still be rejected by the asset servlets unless the core-side fix is present.</p>
  */
 public class BasicAuthActionlet extends RuleActionlet<BasicAuthActionlet.Instance> {
 
