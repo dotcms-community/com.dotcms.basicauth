@@ -1,23 +1,38 @@
 package com.dotmarketing.osgi.ruleengine.actionlet;
 
-import static com.dotcms.repackage.com.google.common.base.Preconditions.checkState;
-import java.io.IOException;
+import static com.google.common.base.Preconditions.checkState;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import com.dotcms.repackage.com.google.common.base.Preconditions;
+import com.google.common.base.Preconditions;
 import com.dotmarketing.portlets.rules.RuleComponentInstance;
 import com.dotmarketing.portlets.rules.actionlet.RuleActionlet;
 import com.dotmarketing.portlets.rules.model.ParameterModel;
 import com.dotmarketing.portlets.rules.parameter.ParameterDefinition;
 import com.dotmarketing.portlets.rules.parameter.display.TextInput;
 import com.dotmarketing.portlets.rules.parameter.type.TextType;
+import com.dotmarketing.osgi.ruleengine.actionlet.filter.BasicAuthWebInterceptor;
 import com.dotmarketing.util.Logger;
 import io.vavr.control.Try;
 
 
+/**
+ * Rules-engine actionlet that challenges page requests with HTTP Basic Auth using a configured
+ * {@code username:password}. This is the original (pre-1.0) enforcement path, retained for backward
+ * compatibility so existing rules keep working.
+ *
+ * <p>For full coverage — including asset sub-resources (CSS/JS/images), which a rule cannot gate —
+ * prefer the {@link com.dotmarketing.osgi.ruleengine.actionlet.filter.BasicAuthWebInterceptor}
+ * (configured via {@code BASICAUTH_HOSTS} / {@code BASICAUTH_CREDENTIALS}). The
+ * {@code BASICAUTH_ENFORCEMENT} property selects which mechanism enforces; in the default
+ * {@code AUTO} mode this actionlet enforces only on hosts the interceptor is not gating.</p>
+ *
+ * <p>Unlike the interceptor, this actionlet does not strip the {@code Authorization} header, so on
+ * dotCMS versions with the strict BASIC handling (dotCMS/core#29869) browser-replayed credentials on
+ * sub-resources may still be rejected by the asset servlets unless the core-side fix is present.</p>
+ */
 public class BasicAuthActionlet extends RuleActionlet<BasicAuthActionlet.Instance> {
 
 
@@ -38,29 +53,38 @@ public class BasicAuthActionlet extends RuleActionlet<BasicAuthActionlet.Instanc
     }
 
 
+    /**
+     * Challenges the request with Basic Auth unless it carries the configured credential. Yields
+     * (no-op) when the {@link BasicAuthWebInterceptor} is the active gate for this request — see
+     * {@link BasicAuthWebInterceptor#actionletShouldEnforce(HttpServletRequest)} — so the two
+     * mechanisms never both challenge the same request.
+     *
+     * @return {@code true} when the action completed (credential valid, challenge issued, or yielded);
+     * {@code false} only if an unexpected error occurred.
+     */
     @Override
     public boolean evaluate(HttpServletRequest request, HttpServletResponse response, Instance instance) {
+        if (!BasicAuthWebInterceptor.actionletShouldEnforce(request)) {
+            // The BasicAuthWebInterceptor owns the gate for this request (per BASICAUTH_ENFORCEMENT);
+            // do not double-challenge.
+            Logger.debug(BasicAuthActionlet.class,
+                    "BasicAuthActionlet yielding to BasicAuthWebInterceptor for this request.");
+            return true;
+        }
+
         boolean success = false;
         try {
-
-
-            String auth = Try.of(()->  request.getHeader("Authorization").replace("Basic ", "").trim()).getOrNull();
-            if( auth!=null && instance.basicAuth.equals(auth)) {
+            final String auth = Try.of(() -> request.getHeader("Authorization")
+                    .replace("Basic ", "").trim()).getOrNull();
+            if (auth != null && instance.basicAuth.equals(auth)) {
                 return true;
             }
-            
 
-            response.setStatus(401);
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setHeader("WWW-Authenticate", "Basic");
-            Thread.sleep(1000);
-            
             response.getWriter().write("401");
             response.getWriter().close();
             return true;
-
-
-
-
         } catch (Exception e) {
             Logger.error(BasicAuthActionlet.class, "Error executing BasicAuthActionlet.", e);
         }
