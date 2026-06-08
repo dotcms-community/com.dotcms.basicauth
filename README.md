@@ -16,7 +16,7 @@ standard approach; use this plugin when you cannot add an edge gate.
 Requires JDK 11+. Build the bundle JAR with the Maven wrapper:
 `./mvnw clean package`
 
-This produces a single OSGi bundle at `target/com.dotcms.basicauth-1.0.0.jar`. (No separate
+This produces a single OSGi bundle at `target/com.dotcms.basicauth-1.0.0-lts_24.12.jar`. (No separate
 fragment jar is needed on current dotCMS — the required third-party packages are exported by core.)
 
 * **To install this bundle:**

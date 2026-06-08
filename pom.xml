@@ -6,7 +6,7 @@
 
     <groupId>com.dotcms</groupId>
     <artifactId>com.dotcms.basicauth</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.0-lts_24.12</version>
     <packaging>bundle</packaging>
 
     <name>BasicAuth Actionlet</name>
@@ -17,7 +17,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
-        <dotcms-core.version>26.05.26-01</dotcms-core.version>
+        <dotcms-core.version>24.12.27_lts_v22</dotcms-core.version>
     </properties>
 
     <repositories>
