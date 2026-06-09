@@ -50,7 +50,11 @@
                         <Bundle-DocURL>https://dotcms.com/</Bundle-DocURL>
                         <Bundle-Activator>com.dotmarketing.osgi.ruleengine.actionlet.Activator</Bundle-Activator>
                         <Private-Package>com.dotmarketing.osgi.ruleengine.actionlet,com.dotmarketing.osgi.ruleengine.actionlet.filter</Private-Package>
-                        <Import-Package>!com.dotmarketing.osgi.ruleengine.actionlet,!com.dotmarketing.osgi.ruleengine.actionlet.filter,*</Import-Package>
+                        <!-- Import host packages WITHOUT version ranges (;version=0). dotCMS exports
+                             third-party packages at a sentinel version (e.g. com.google.common.base;version=0.1.0
+                             in osgi-extra.conf), so bnd's auto-derived ranges like [32.0,33) do not resolve.
+                             version=0 (>=0.0.0) binds to whatever the host exports across dotCMS releases. -->
+                        <Import-Package>!com.dotmarketing.osgi.ruleengine.actionlet,!com.dotmarketing.osgi.ruleengine.actionlet.filter,*;version=0</Import-Package>
                     </instructions>
                 </configuration>
             </plugin>
